@@ -26,8 +26,8 @@ npm run preview    # serve dist/ locally
 
 ```bash
 docker build -t school-planner .
-docker run -d -p 8099:80 school-planner
-# open http://localhost:8099
+docker run -d -p 3000:3000 school-planner
+# open http://localhost:3000
 ```
 
 ## Stack

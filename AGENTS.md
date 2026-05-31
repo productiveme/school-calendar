@@ -8,7 +8,7 @@ npm run build      # static output → dist/
 npm run preview    # serve dist/ locally
 
 docker build -t school-planner .
-docker run -d -p 8099:80 school-planner   # serves on http://localhost:8099
+docker run -d -p 3000:3000 school-planner   # serves on http://localhost:3000
 ```
 
 No test runner, no linter configured. Build is the verification step — `npm run build` must complete without errors before committing.
