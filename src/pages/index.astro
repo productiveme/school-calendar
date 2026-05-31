@@ -1,0 +1,548 @@
+---
+import Layout from '../layouts/Layout.astro'
+---
+
+<Layout>
+  <!-- ── Screen UI ── -->
+  <div class="no-print min-h-screen flex flex-col" style="background:var(--color-bg)">
+
+    <!-- Header -->
+    <header class="border-b px-8 py-4 flex items-center justify-between" style="background:var(--color-surface);border-color:var(--color-border)">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold" style="background:var(--color-primary)">S</div>
+        <span class="font-semibold tracking-tight text-lg" style="color:var(--color-text)">School Planner</span>
+      </div>
+      <button
+        id="btn-print"
+        class="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90 active:opacity-75"
+        style="background:var(--color-primary)"
+      >
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>
+        Print Calendar
+      </button>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+
+      <!-- ── Sidebar ── -->
+      <aside class="w-80 flex-shrink-0 border-r flex flex-col overflow-hidden" style="background:var(--color-surface);border-color:var(--color-border)">
+
+        <!-- Colour picker -->
+        <div class="p-5 border-b" style="border-color:var(--color-border)">
+          <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color:var(--color-muted)">Colour</p>
+          <div class="flex flex-wrap gap-2" id="colour-swatches">
+            <button data-colour="#4F7FD4" title="Blue"       class="swatch w-7 h-7 rounded-full border-2 border-transparent transition-all" style="background:#4F7FD4"></button>
+            <button data-colour="#e05a7a" title="Rose"       class="swatch w-7 h-7 rounded-full border-2 border-transparent transition-all" style="background:#e05a7a"></button>
+            <button data-colour="#f59e0b" title="Amber"      class="swatch w-7 h-7 rounded-full border-2 border-transparent transition-all" style="background:#f59e0b"></button>
+            <button data-colour="#34B88C" title="Teal"       class="swatch w-7 h-7 rounded-full border-2 border-transparent transition-all" style="background:#34B88C"></button>
+            <button data-colour="#a855f7" title="Purple"     class="swatch w-7 h-7 rounded-full border-2 border-transparent transition-all" style="background:#a855f7"></button>
+            <button data-colour="#ef6820" title="Orange"     class="swatch w-7 h-7 rounded-full border-2 border-transparent transition-all" style="background:#ef6820"></button>
+            <button data-colour="#0ea5e9" title="Sky"        class="swatch w-7 h-7 rounded-full border-2 border-transparent transition-all" style="background:#0ea5e9"></button>
+            <button data-colour="#64748b" title="Slate"      class="swatch w-7 h-7 rounded-full border-2 border-transparent transition-all" style="background:#64748b"></button>
+            <label title="Custom colour" class="swatch-custom w-7 h-7 rounded-full border-2 border-dashed flex items-center justify-center cursor-pointer transition-all" style="border-color:var(--color-border);color:var(--color-muted)">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+              <input id="colour-custom" type="color" class="sr-only" value="#4F7FD4" />
+            </label>
+          </div>
+        </div>
+
+        <!-- Period selector -->
+        <div class="p-5 border-b" style="border-color:var(--color-border)">
+          <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color:var(--color-muted)">Time Period</p>
+          <div class="grid grid-cols-2 gap-2">
+            <button data-period="this-month"  class="period-btn px-3 py-2 rounded-lg text-sm font-medium border transition-all">This Month</button>
+            <button data-period="next-month"  class="period-btn px-3 py-2 rounded-lg text-sm font-medium border transition-all">Next Month</button>
+            <button data-period="this-quarter" class="period-btn px-3 py-2 rounded-lg text-sm font-medium border transition-all">This Quarter</button>
+            <button data-period="next-quarter" class="period-btn px-3 py-2 rounded-lg text-sm font-medium border transition-all">Next Quarter</button>
+          </div>
+          <p id="period-label" class="mt-3 text-xs font-medium" style="color:var(--color-accent)"></p>
+        </div>
+
+        <!-- Activity form -->
+        <div class="p-5 border-b" style="border-color:var(--color-border)">
+          <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color:var(--color-muted)">Add Activity</p>
+          <div class="flex flex-col gap-3">
+            <div>
+              <label class="text-xs font-medium mb-1 block" style="color:var(--color-muted)">Date</label>
+              <select id="input-date" class="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2" style="border-color:var(--color-border);color:var(--color-text);background:var(--color-bg);--tw-ring-color:var(--color-primary)">
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-medium mb-1 block" style="color:var(--color-muted)">Activity / Note</label>
+              <input
+                id="input-text"
+                type="text"
+                placeholder="e.g. 2pm: Math revision"
+                class="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2"
+                style="border-color:var(--color-border);color:var(--color-text);background:var(--color-bg);--tw-ring-color:var(--color-primary)"
+              />
+            </div>
+            <label class="flex items-center gap-2 text-sm cursor-pointer select-none" style="color:var(--color-text)">
+              <input id="input-repeat" type="checkbox" class="w-4 h-4 rounded accent-blue-500" />
+              Repeat weekly
+            </label>
+            <button
+              id="btn-add"
+              class="w-full py-2 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90"
+              style="background:var(--color-accent)"
+            >+ Add Activity</button>
+          </div>
+        </div>
+
+        <!-- Activity list -->
+        <div class="flex-1 overflow-y-auto p-5">
+          <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color:var(--color-muted)">Activities <span id="activity-count" class="normal-case font-normal"></span></p>
+          <ul id="activity-list" class="flex flex-col gap-2"></ul>
+        </div>
+
+      </aside>
+
+      <!-- ── Calendar Preview ── -->
+      <main class="flex-1 overflow-auto p-6">
+        <div id="calendar-preview" class="w-full h-full"></div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- ── Print-only view (hidden on screen, shown when printing) ── -->
+  <div id="calendar-print" class="print-only"></div>
+</Layout>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+//  Types & State
+// ─────────────────────────────────────────────────────────────
+interface Activity {
+  id: string
+  date: string   // YYYY-MM-DD
+  text: string
+  repeat: boolean
+}
+
+interface AppState {
+  period: string
+  months: { year: number; month: number }[]
+  activities: Activity[]
+  colour: string
+}
+
+const state: AppState = {
+  period: 'this-month',
+  months: [],
+  colour: localStorage.getItem('planner-colour') || '#4F7FD4',
+  activities: JSON.parse(localStorage.getItem('planner-activities') || '[]'),
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Date Helpers
+// ─────────────────────────────────────────────────────────────
+const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December']
+
+function today() {
+  const d = new Date(); return { year: d.getFullYear(), month: d.getMonth() }
+}
+
+function addMonths(base: {year:number,month:number}, n: number) {
+  const d = new Date(base.year, base.month + n, 1)
+  return { year: d.getFullYear(), month: d.getMonth() }
+}
+
+function quarterStartMonth(m: number) { return Math.floor(m / 3) * 3 }
+
+function getPeriodMonths(period: string): {year:number,month:number}[] {
+  const t = today()
+  if (period === 'this-month') return [t]
+  if (period === 'next-month') return [addMonths(t,1)]
+  if (period === 'this-quarter') {
+    const qs = quarterStartMonth(t.month)
+    return [0,1,2].map(i => addMonths({year:t.year, month:qs}, i))
+  }
+  // next-quarter
+  const qs = quarterStartMonth(t.month) + 3
+  return [0,1,2].map(i => addMonths({year:t.year, month:qs}, i))
+}
+
+function daysInMonth(year:number, month:number) {
+  return new Date(year, month+1, 0).getDate()
+}
+
+function toDateStr(year:number, month:number, day:number) {
+  return `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+}
+
+function periodLabel(months: {year:number,month:number}[]) {
+  if (months.length === 1) return `${MONTH_NAMES[months[0].month]} ${months[0].year}`
+  return `${MONTH_NAMES[months[0].month]} – ${MONTH_NAMES[months[months.length-1].month]} ${months[months.length-1].year}`
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Persistence
+// ─────────────────────────────────────────────────────────────
+function saveActivities() {
+  localStorage.setItem('planner-activities', JSON.stringify(state.activities))
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Calendar HTML builder
+// ─────────────────────────────────────────────────────────────
+function getActivitiesForDate(dateStr: string): Activity[] {
+  const d = new Date(dateStr + 'T00:00:00')
+  const dayOfWeek = d.getDay()
+
+  return state.activities.filter(a => {
+    if (a.date === dateStr) return true
+    if (!a.repeat) return false
+    // weekly repeat: same day-of-week within the same period
+    const aDate = new Date(a.date + 'T00:00:00')
+    if (aDate.getDay() !== dayOfWeek) return false
+    if (aDate > d) return false
+    // must be within period
+    const periodDates = state.months.flatMap(m => {
+      const days = daysInMonth(m.year, m.month)
+      return Array.from({length:days},(_,i) => toDateStr(m.year, m.month, i+1))
+    })
+    return periodDates.includes(dateStr)
+  })
+}
+
+function buildMonthCalendar(year: number, month: number): string {
+  const totalDays = daysInMonth(year, month)
+  const firstDow = new Date(year, month, 1).getDay() // 0=Sun
+  const todayStr = toDateStr(today().year, today().month, new Date().getDate())
+  const cellHeight = 'min-h-[120px]'
+
+  const headerBg = 'style="background:var(--color-primary)"'
+  let html = `
+    <div class="rounded-2xl overflow-hidden border" style="border-color:var(--color-border);box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+      <div class="px-5 py-3 flex items-center justify-between text-white" ${headerBg}>
+        <span class="text-base font-semibold tracking-tight">${MONTH_NAMES[month]} ${year}</span>
+        <span class="text-xs opacity-70 font-medium">${totalDays} days</span>
+      </div>
+      <div class="grid grid-cols-7 border-b" style="border-color:var(--color-border);background:var(--color-surface)">
+  `
+  for (const d of DAY_NAMES) {
+    const isWknd = d === 'Sun' || d === 'Sat'
+    html += `<div class="py-2 text-center text-xs font-semibold uppercase tracking-widest ${isWknd ? 'opacity-40' : ''}" style="color:var(--color-muted)">${d}</div>`
+  }
+  html += `</div><div class="grid grid-cols-7" style="background:var(--color-surface)">`
+
+  // Empty leading cells
+  for (let i = 0; i < firstDow; i++) {
+    html += `<div class="${cellHeight} border-r border-b" style="border-color:var(--color-border);background:#f9fafb"></div>`
+  }
+
+  for (let day = 1; day <= totalDays; day++) {
+    const dateStr = toDateStr(year, month, day)
+    const dow = (firstDow + day - 1) % 7
+    const isWknd = dow === 0 || dow === 6
+    const isTdy = dateStr === todayStr
+    const acts = getActivitiesForDate(dateStr)
+    const isLastCol = dow === 6
+    const isLastRow = day > totalDays - 7
+
+    let cellBg = isWknd ? 'background:var(--color-day-weekend)' : 'background:var(--color-surface)'
+    if (isTdy) cellBg = 'background:var(--color-day-today)'
+
+    html += `<div class="${cellHeight} border-r border-b p-1.5 flex flex-col ${isLastCol ? 'border-r-0' : ''} ${isLastRow ? 'border-b-0' : ''}" style="${cellBg};border-color:var(--color-border)">`
+
+    // Date number
+    const dateNumStyle = isTdy
+      ? `width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;background:var(--color-primary);`
+      : `font-size:12px;font-weight:${isWknd?'500':'600'};color:${isWknd?'var(--color-muted)':'var(--color-text)'};padding:1px 2px;`
+    html += `<span style="${dateNumStyle}">${day}</span>`
+
+    // Activities
+    if (acts.length > 0) {
+      html += `<div class="flex flex-col gap-0.5 mt-1">`
+      for (const a of acts) {
+        html += `<div class="text-xs px-1 py-0.5 rounded font-medium truncate" style="background:${a.repeat ? '#e0f5ee' : '#EFF6FF'};color:${a.repeat ? '#0d7a57' : 'var(--color-primary)'}">${a.text}</div>`
+      }
+      html += `</div>`
+    }
+
+    // Dotted writing space
+    html += `<div class="flex-1 mt-1 dotted-lines"></div>`
+    html += `</div>`
+  }
+
+  // Trailing empty cells to complete the grid
+  const totalCells = firstDow + totalDays
+  const remainder = totalCells % 7
+  if (remainder !== 0) {
+    const trailing = 7 - remainder
+    for (let i = 0; i < trailing; i++) {
+      html += `<div class="${cellHeight} border-b-0 ${i < trailing-1 ? 'border-r' : ''}" style="border-color:var(--color-border);background:#f9fafb"></div>`
+    }
+  }
+
+  html += `</div></div>`
+  return html
+}
+
+function buildFullCalendar(): string {
+  const months = state.months
+  return `<div class="flex flex-col gap-6">${
+    months.map(m => buildMonthCalendar(m.year, m.month)).join('')
+  }</div>`
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Render functions
+// ─────────────────────────────────────────────────────────────
+function renderPeriodButtons() {
+  document.querySelectorAll<HTMLButtonElement>('.period-btn').forEach(btn => {
+    const active = btn.dataset.period === state.period
+    btn.style.background = active ? 'var(--color-primary)' : 'var(--color-surface)'
+    btn.style.color = active ? 'white' : 'var(--color-text)'
+    btn.style.borderColor = active ? 'var(--color-primary)' : 'var(--color-border)'
+  })
+  const lbl = document.getElementById('period-label')!
+  lbl.textContent = periodLabel(state.months)
+}
+
+function renderDateDropdown() {
+  const sel = document.getElementById('input-date') as HTMLSelectElement
+  sel.innerHTML = ''
+  for (const m of state.months) {
+    const days = daysInMonth(m.year, m.month)
+    const grp = document.createElement('optgroup')
+    grp.label = `${MONTH_NAMES[m.month]} ${m.year}`
+    for (let d = 1; d <= days; d++) {
+      const ds = toDateStr(m.year, m.month, d)
+      const dow = DAY_NAMES[new Date(ds+'T00:00:00').getDay()]
+      const opt = document.createElement('option')
+      opt.value = ds
+      opt.textContent = `${MONTH_NAMES[m.month].slice(0,3)} ${d} (${dow})`
+      grp.appendChild(opt)
+    }
+    sel.appendChild(grp)
+  }
+}
+
+function renderActivityList() {
+  const ul = document.getElementById('activity-list')!
+  const count = document.getElementById('activity-count')!
+  ul.innerHTML = ''
+
+  if (state.activities.length === 0) {
+    ul.innerHTML = '<li class="text-xs italic" style="color:var(--color-muted)">No activities yet. Add one above.</li>'
+    count.textContent = ''
+    return
+  }
+  count.textContent = `(${state.activities.length})`
+
+  // Sort by date
+  const sorted = [...state.activities].sort((a,b) => a.date.localeCompare(b.date))
+  for (const act of sorted) {
+    const d = new Date(act.date + 'T00:00:00')
+    const label = `${MONTH_NAMES[d.getMonth()].slice(0,3)} ${d.getDate()}`
+    const li = document.createElement('li')
+    li.className = 'flex items-start gap-2 p-2 rounded-lg group'
+    li.style.background = 'var(--color-bg)'
+    li.innerHTML = `
+      <div class="flex-shrink-0 mt-0.5">
+        <span class="inline-block text-xs px-1.5 py-0.5 rounded font-semibold" style="background:${act.repeat?'#e0f5ee':'#EFF6FF'};color:${act.repeat?'#0d7a57':'var(--color-primary)'}">${label}${act.repeat?' ↻':''}</span>
+      </div>
+      <span class="flex-1 text-xs leading-relaxed" style="color:var(--color-text)">${act.text}</span>
+      <button data-id="${act.id}" class="delete-btn flex-shrink-0 opacity-0 group-hover:opacity-100 text-xs transition-opacity" style="color:var(--color-muted)">✕</button>
+    `
+    ul.appendChild(li)
+  }
+
+  ul.querySelectorAll<HTMLButtonElement>('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.activities = state.activities.filter(a => a.id !== btn.dataset.id)
+      saveActivities()
+      renderActivityList()
+      renderCalendar()
+    })
+  })
+}
+
+function renderCalendar() {
+  const preview = document.getElementById('calendar-preview')!
+  preview.innerHTML = buildFullCalendar()
+  const printDiv = document.getElementById('calendar-print')!
+  printDiv.innerHTML = buildPrintCalendar()
+}
+
+function buildPrintCalendar(): string {
+  const months = state.months
+
+  const pages = months.map((m, i) => {
+    const isLast = i === months.length - 1
+    const totalDays = daysInMonth(m.year, m.month)
+    const firstDow = new Date(m.year, m.month, 1).getDay()
+    const todayStr = toDateStr(today().year, today().month, new Date().getDate())
+    const totalCells = firstDow + totalDays
+    const numRows = Math.ceil(totalCells / 7)
+
+    // A4 landscape minus 8mm margins each side = 194mm usable height
+    // Header ~10mm, day-names row ~8mm → grid fills the rest
+    const gridHeight = `calc(194mm - 18mm)`
+
+    const cellStyle = (bg: string, borderR: boolean, borderB: boolean) =>
+      `display:flex;flex-direction:column;padding:4px 6px;background:${bg};` +
+      `${borderR ? 'border-right:1px solid #e2e8f0;' : ''}` +
+      `${borderB ? 'border-bottom:1px solid #e2e8f0;' : ''}`
+
+    let cells = ''
+
+    // Leading empty cells
+    for (let i = 0; i < firstDow; i++) {
+      const isLastCol = i === 6
+      cells += `<div style="${cellStyle('#f9fafb', !isLastCol, true)}"></div>`
+    }
+
+    for (let day = 1; day <= totalDays; day++) {
+      const dateStr = toDateStr(m.year, m.month, day)
+      const dow = (firstDow + day - 1) % 7
+      const isWknd = dow === 0 || dow === 6
+      const isTdy = dateStr === todayStr
+      const acts = getActivitiesForDate(dateStr)
+      const isLastCol = dow === 6
+      const isLastRow = day > totalDays - 7
+      const bg = isTdy ? '#EFF6FF' : isWknd ? '#fafbfc' : '#ffffff'
+
+      cells += `<div style="${cellStyle(bg, !isLastCol, !isLastRow)}">`
+
+      const numStyle = isTdy
+        ? `width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;background:${state.colour};flex-shrink:0`
+        : `font-size:11px;font-weight:${isWknd ? '500' : '600'};color:${isWknd ? '#94a3b8' : '#1a2332'};flex-shrink:0`
+      cells += `<span style="${numStyle}">${day}</span>`
+
+      if (acts.length > 0) {
+        cells += `<div style="display:flex;flex-direction:column;gap:2px;margin-top:2px">`
+        for (const a of acts) {
+          cells += `<div style="font-size:9px;padding:1px 4px;border-radius:3px;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;background:${a.repeat ? '#e0f5ee' : '#EFF6FF'};color:${a.repeat ? '#0d7a57' : state.colour}">${a.text}</div>`
+        }
+        cells += `</div>`
+      }
+
+      // Dotted writing lines
+      cells += `<div style="flex:1;margin-top:3px;background-color:#ffffff;background-image:radial-gradient(circle,#b0bec5 1px,#ffffff 1px);background-size:16px 18px;background-position:4px 8px;background-repeat:repeat"></div>`
+      cells += `</div>`
+    }
+
+    // Trailing cells
+    const remainder = totalCells % 7
+    if (remainder !== 0) {
+      const trailing = 7 - remainder
+      for (let i = 0; i < trailing; i++) {
+        cells += `<div style="${cellStyle('#f9fafb', i < trailing - 1, false)}"></div>`
+      }
+    }
+
+    const dayNames = DAY_NAMES.map(d => {
+      const isWknd = d === 'Sun' || d === 'Sat'
+      return `<div style="text-align:center;font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:5px 0;color:${isWknd ? '#cbd5e1' : '#94a3b8'}">${d}</div>`
+    }).join('')
+
+    return `
+      <div style="width:100%;${isLast ? '' : 'break-after:page;page-break-after:always;'}font-family:'Inter Variable',Inter,system-ui,sans-serif">
+        <div style="display:flex;flex-direction:column;height:194mm;border-radius:10px;overflow:hidden;border:1px solid #e2e8f0">
+          <div style="background:${state.colour};padding:8px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+            <span style="color:white;font-size:15px;font-weight:700;letter-spacing:-0.02em">${MONTH_NAMES[m.month]} ${m.year}</span>
+            <span style="color:rgba(255,255,255,0.6);font-size:10px;font-weight:500">${totalDays} days</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid #e2e8f0;flex-shrink:0;background:#fff">
+            ${dayNames}
+          </div>
+          <div style="flex:1;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(${numRows},1fr);background:#fff">
+            ${cells}
+          </div>
+        </div>
+      </div>`
+  }).join('')
+
+  return `<div style="font-family:'Inter Variable',Inter,system-ui,sans-serif">${pages}</div>`
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Event wiring
+// ─────────────────────────────────────────────────────────────
+function setPeriod(period: string) {
+  state.period = period
+  state.months = getPeriodMonths(period)
+  renderPeriodButtons()
+  renderDateDropdown()
+  renderCalendar()
+}
+
+document.querySelectorAll<HTMLButtonElement>('.period-btn').forEach(btn => {
+  btn.addEventListener('click', () => setPeriod(btn.dataset.period!))
+})
+
+document.getElementById('btn-add')!.addEventListener('click', () => {
+  const dateEl = document.getElementById('input-date') as HTMLSelectElement
+  const textEl = document.getElementById('input-text') as HTMLInputElement
+  const repeatEl = document.getElementById('input-repeat') as HTMLInputElement
+
+  const text = textEl.value.trim()
+  if (!text) { textEl.focus(); return }
+
+  const act: Activity = {
+    id: crypto.randomUUID(),
+    date: dateEl.value,
+    text,
+    repeat: repeatEl.checked,
+  }
+  state.activities.push(act)
+  saveActivities()
+  textEl.value = ''
+  repeatEl.checked = false
+  renderActivityList()
+  renderCalendar()
+})
+
+document.getElementById('input-text')!.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('btn-add')!.click()
+})
+
+document.getElementById('btn-print')!.addEventListener('click', () => window.print())
+
+// ─────────────────────────────────────────────────────────────
+//  Colour picker
+// ─────────────────────────────────────────────────────────────
+function setColour(hex: string) {
+  state.colour = hex
+  localStorage.setItem('planner-colour', hex)
+  document.documentElement.style.setProperty('--color-primary', hex)
+
+  // Update header logo bg and print button
+  document.querySelectorAll<HTMLElement>('[data-primary-bg]').forEach(el => {
+    el.style.background = hex
+  })
+
+  // Update swatch ring
+  document.querySelectorAll<HTMLButtonElement>('.swatch').forEach(btn => {
+    const active = btn.dataset.colour?.toLowerCase() === hex.toLowerCase()
+    btn.style.borderColor = active ? hex : 'transparent'
+    btn.style.boxShadow = active ? `0 0 0 2px white, 0 0 0 4px ${hex}` : 'none'
+  })
+
+  // Update custom swatch border
+  const customLabel = document.querySelector<HTMLElement>('.swatch-custom')!
+  customLabel.style.borderColor = hex
+  ;(document.getElementById('colour-custom') as HTMLInputElement).value = hex
+
+  renderCalendar()
+}
+
+document.querySelectorAll<HTMLButtonElement>('.swatch').forEach(btn => {
+  btn.addEventListener('click', () => setColour(btn.dataset.colour!))
+})
+
+document.getElementById('colour-custom')!.addEventListener('input', (e) => {
+  setColour((e.target as HTMLInputElement).value)
+})
+
+// ─────────────────────────────────────────────────────────────
+//  Init
+// ─────────────────────────────────────────────────────────────
+setColour(state.colour)
+setPeriod('this-month')
+renderActivityList()
+</script>
