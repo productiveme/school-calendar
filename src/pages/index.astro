@@ -119,7 +119,7 @@ import Layout from '../layouts/Layout.astro'
         <button id="import-close" class="text-lg leading-none" style="color:var(--color-muted)">✕</button>
       </div>
       <div class="p-5 flex flex-col gap-3">
-        <p class="text-xs" style="color:var(--color-muted)">Paste exported YAML below. Existing activities will be replaced.</p>
+        <p class="text-xs" style="color:var(--color-muted)">Paste exported YAML below. Activities will be added to your existing ones.</p>
         <textarea
           id="import-text"
           rows="10"
@@ -128,7 +128,38 @@ import Layout from '../layouts/Layout.astro'
           style="border-color:var(--color-border);color:var(--color-text);background:var(--color-bg);--tw-ring-color:var(--color-primary)"
         ></textarea>
         <p id="import-error" class="text-xs hidden" style="color:#e05a7a"></p>
-        <button id="import-confirm" class="w-full py-2 rounded-lg text-sm font-medium text-white" style="background:var(--color-primary)">Import</button>
+        <div class="flex gap-2">
+          <button id="import-confirm" class="flex-1 py-2 rounded-lg text-sm font-medium text-white" style="background:var(--color-primary)">Add to existing</button>
+          <button id="import-replace" class="flex-1 py-2 rounded-lg text-sm font-medium" style="background:var(--color-surface);color:var(--color-muted);border:1px solid var(--color-border)">Replace all</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Edit activity modal ── -->
+  <div id="edit-modal" class="no-print fixed inset-0 flex items-center justify-center z-50 hidden" style="background:rgba(0,0,0,0.4)">
+    <div class="rounded-2xl shadow-2xl w-full max-w-sm mx-4 flex flex-col overflow-hidden" style="background:var(--color-surface)">
+      <div class="px-5 py-4 border-b flex items-center justify-between" style="border-color:var(--color-border)">
+        <span class="font-semibold text-sm" style="color:var(--color-text)">Edit Activity</span>
+        <button id="edit-close" class="text-lg leading-none" style="color:var(--color-muted)">✕</button>
+      </div>
+      <div class="p-5 flex flex-col gap-3">
+        <div>
+          <label class="text-xs font-medium mb-1 block" style="color:var(--color-muted)">Date</label>
+          <select id="edit-date" class="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2" style="border-color:var(--color-border);color:var(--color-text);background:var(--color-bg)"></select>
+        </div>
+        <div>
+          <label class="text-xs font-medium mb-1 block" style="color:var(--color-muted)">Activity / Note</label>
+          <input id="edit-text" type="text" class="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2" style="border-color:var(--color-border);color:var(--color-text);background:var(--color-bg)" />
+        </div>
+        <label class="flex items-center gap-2 text-sm cursor-pointer select-none" style="color:var(--color-text)">
+          <input id="edit-repeat" type="checkbox" class="w-4 h-4 rounded accent-blue-500" />
+          Repeat weekly
+        </label>
+        <div class="flex gap-2 pt-1">
+          <button id="edit-save" class="flex-1 py-2 rounded-lg text-sm font-medium text-white" style="background:var(--color-primary)">Save</button>
+          <button id="edit-delete" class="py-2 px-4 rounded-lg text-sm font-medium" style="background:#fff0f3;color:#e05a7a;border:1px solid #fecdd3">Delete</button>
+        </div>
       </div>
     </div>
   </div>
@@ -285,7 +316,7 @@ function buildMonthCalendar(year: number, month: number): string {
     if (acts.length > 0) {
       html += `<div class="flex flex-col gap-0.5 mt-1">`
       for (const a of acts) {
-        html += `<div class="text-xs px-1 py-0.5 rounded font-medium truncate" style="background:${a.repeat ? '#e0f5ee' : '#EFF6FF'};color:${a.repeat ? '#0d7a57' : 'var(--color-primary)'}">${a.text}</div>`
+        html += `<div data-edit-id="${a.id}" class="activity-pill text-xs px-1 py-0.5 rounded font-medium truncate cursor-pointer hover:opacity-75 transition-opacity" style="background:${a.repeat ? '#e0f5ee' : '#EFF6FF'};color:${a.repeat ? '#0d7a57' : 'var(--color-primary)'}">${a.text}</div>`
       }
       html += `</div>`
     }
@@ -568,6 +599,77 @@ document.getElementById('colour-custom')!.addEventListener('input', (e) => {
 })
 
 // ─────────────────────────────────────────────────────────────
+//  Edit modal
+// ─────────────────────────────────────────────────────────────
+const editModal   = document.getElementById('edit-modal')!
+const editDateSel = document.getElementById('edit-date') as HTMLSelectElement
+const editTextEl  = document.getElementById('edit-text') as HTMLInputElement
+const editRepeat  = document.getElementById('edit-repeat') as HTMLInputElement
+let editingId: string | null = null
+
+function openEditModal(id: string) {
+  const act = state.activities.find(a => a.id === id)
+  if (!act) return
+  editingId = id
+
+  // Populate date dropdown with all dates in period
+  editDateSel.innerHTML = ''
+  for (const m of state.months) {
+    const days = daysInMonth(m.year, m.month)
+    const grp = document.createElement('optgroup')
+    grp.label = `${MONTH_NAMES[m.month]} ${m.year}`
+    for (let d = 1; d <= days; d++) {
+      const ds = toDateStr(m.year, m.month, d)
+      const dow = DAY_NAMES[new Date(ds + 'T00:00:00').getDay()]
+      const opt = document.createElement('option')
+      opt.value = ds
+      opt.textContent = `${MONTH_NAMES[m.month].slice(0, 3)} ${d} (${dow})`
+      if (ds === act.date) opt.selected = true
+      grp.appendChild(opt)
+    }
+    editDateSel.appendChild(grp)
+  }
+
+  editTextEl.value  = act.text
+  editRepeat.checked = act.repeat
+  editModal.classList.remove('hidden')
+  editTextEl.focus()
+}
+
+document.getElementById('edit-close')!.addEventListener('click', () => editModal.classList.add('hidden'))
+editModal.addEventListener('click', (e) => { if (e.target === editModal) editModal.classList.add('hidden') })
+
+document.getElementById('edit-save')!.addEventListener('click', () => {
+  if (!editingId) return
+  const text = editTextEl.value.trim()
+  if (!text) { editTextEl.focus(); return }
+  state.activities = state.activities.map(a =>
+    a.id === editingId ? { ...a, date: editDateSel.value, text, repeat: editRepeat.checked } : a
+  )
+  saveActivities()
+  renderActivityList()
+  renderCalendar()
+  editModal.classList.add('hidden')
+})
+
+document.getElementById('edit-delete')!.addEventListener('click', () => {
+  if (!editingId) return
+  state.activities = state.activities.filter(a => a.id !== editingId)
+  saveActivities()
+  renderActivityList()
+  renderCalendar()
+  editModal.classList.add('hidden')
+})
+
+editTextEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('edit-save')!.click() })
+
+// Delegate clicks on calendar activity pills
+document.getElementById('calendar-preview')!.addEventListener('click', (e) => {
+  const pill = (e.target as HTMLElement).closest<HTMLElement>('[data-edit-id]')
+  if (pill) openEditModal(pill.dataset.editId!)
+})
+
+// ─────────────────────────────────────────────────────────────
 //  Export / Import
 // ─────────────────────────────────────────────────────────────
 function toYaml(activities: Activity[]): string {
@@ -618,12 +720,12 @@ document.getElementById('btn-import')!.addEventListener('click', () => {
 document.getElementById('import-close')!.addEventListener('click', () => modal.classList.add('hidden'))
 modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden') })
 
-document.getElementById('import-confirm')!.addEventListener('click', () => {
+function doImport(replace: boolean) {
   importError.classList.add('hidden')
   try {
     const activities = fromYaml(importText.value.trim())
     if (activities.length === 0) throw new Error('No activities found.')
-    state.activities = activities
+    state.activities = replace ? activities : [...state.activities, ...activities]
     saveActivities()
     renderActivityList()
     renderCalendar()
@@ -632,7 +734,10 @@ document.getElementById('import-confirm')!.addEventListener('click', () => {
     importError.textContent = e.message
     importError.classList.remove('hidden')
   }
-})
+}
+
+document.getElementById('import-confirm')!.addEventListener('click', () => doImport(false))
+document.getElementById('import-replace')!.addEventListener('click', () => doImport(true))
 
 // ─────────────────────────────────────────────────────────────
 //  Init
