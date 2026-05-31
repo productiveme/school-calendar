@@ -25,7 +25,7 @@ import Layout from '../layouts/Layout.astro'
     <div class="flex flex-1 overflow-hidden">
 
       <!-- ── Sidebar ── -->
-      <aside class="w-80 flex-shrink-0 border-r flex flex-col overflow-hidden" style="background:var(--color-surface);border-color:var(--color-border)">
+      <aside class="w-full md:w-80 md:flex-shrink-0 md:border-r flex flex-col overflow-y-auto" style="background:var(--color-surface);border-color:var(--color-border)">
 
         <!-- Colour picker -->
         <div class="p-5 border-b" style="border-color:var(--color-border)">
@@ -104,7 +104,7 @@ import Layout from '../layouts/Layout.astro'
       </aside>
 
       <!-- ── Calendar Preview ── -->
-      <main class="flex-1 overflow-auto p-6">
+      <main class="hidden md:flex flex-1 overflow-auto p-6">
         <div id="calendar-preview" class="w-full h-full"></div>
       </main>
 
