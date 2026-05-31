@@ -90,8 +90,14 @@ import Layout from '../layouts/Layout.astro'
         </div>
 
         <!-- Activity list -->
-        <div class="flex-1 overflow-y-auto p-5">
-          <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color:var(--color-muted)">Activities <span id="activity-count" class="normal-case font-normal"></span></p>
+        <div class="flex-1 overflow-y-auto p-5 flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-xs font-semibold uppercase tracking-widest" style="color:var(--color-muted)">Activities <span id="activity-count" class="normal-case font-normal"></span></p>
+            <div class="flex gap-1">
+              <button id="btn-export" title="Copy activities as YAML" class="text-xs px-2 py-1 rounded border transition-colors hover:opacity-80" style="color:var(--color-muted);border-color:var(--color-border)">Export</button>
+              <button id="btn-import" title="Import activities from YAML" class="text-xs px-2 py-1 rounded border transition-colors hover:opacity-80" style="color:var(--color-muted);border-color:var(--color-border)">Import</button>
+            </div>
+          </div>
           <ul id="activity-list" class="flex flex-col gap-2"></ul>
         </div>
 
@@ -102,6 +108,28 @@ import Layout from '../layouts/Layout.astro'
         <div id="calendar-preview" class="w-full h-full"></div>
       </main>
 
+    </div>
+  </div>
+
+  <!-- ── Import modal ── -->
+  <div id="import-modal" class="no-print fixed inset-0 flex items-center justify-center z-50 hidden" style="background:rgba(0,0,0,0.4)">
+    <div class="rounded-2xl shadow-2xl w-full max-w-md mx-4 flex flex-col overflow-hidden" style="background:var(--color-surface)">
+      <div class="px-5 py-4 border-b flex items-center justify-between" style="border-color:var(--color-border)">
+        <span class="font-semibold text-sm" style="color:var(--color-text)">Import Activities</span>
+        <button id="import-close" class="text-lg leading-none" style="color:var(--color-muted)">✕</button>
+      </div>
+      <div class="p-5 flex flex-col gap-3">
+        <p class="text-xs" style="color:var(--color-muted)">Paste exported YAML below. Existing activities will be replaced.</p>
+        <textarea
+          id="import-text"
+          rows="10"
+          placeholder="- date: 2026-05-10&#10;  text: 9am: Math exam&#10;  repeat: false"
+          class="w-full rounded-lg border px-3 py-2 text-xs font-mono outline-none focus:ring-2 resize-none"
+          style="border-color:var(--color-border);color:var(--color-text);background:var(--color-bg);--tw-ring-color:var(--color-primary)"
+        ></textarea>
+        <p id="import-error" class="text-xs hidden" style="color:#e05a7a"></p>
+        <button id="import-confirm" class="w-full py-2 rounded-lg text-sm font-medium text-white" style="background:var(--color-primary)">Import</button>
+      </div>
     </div>
   </div>
 
@@ -537,6 +565,73 @@ document.querySelectorAll<HTMLButtonElement>('.swatch').forEach(btn => {
 
 document.getElementById('colour-custom')!.addEventListener('input', (e) => {
   setColour((e.target as HTMLInputElement).value)
+})
+
+// ─────────────────────────────────────────────────────────────
+//  Export / Import
+// ─────────────────────────────────────────────────────────────
+function toYaml(activities: Activity[]): string {
+  if (activities.length === 0) return ''
+  const sorted = [...activities].sort((a, b) => a.date.localeCompare(b.date))
+  return sorted.map(a =>
+    `- date: ${a.date}\n  text: "${a.text.replace(/"/g, '\\"')}"\n  repeat: ${a.repeat}`
+  ).join('\n')
+}
+
+function fromYaml(yaml: string): Activity[] {
+  const activities: Activity[] = []
+  const blocks = yaml.split(/\n(?=-)/).map(s => s.trim()).filter(Boolean)
+  for (const block of blocks) {
+    const date    = block.match(/date:\s*(\S+)/)?.[1] ?? ''
+    const textRaw = block.match(/text:\s*"?(.*?)"?\s*$/m)?.[1] ?? ''
+    const repeat  = /repeat:\s*true/.test(block)
+    if (!date || !textRaw) throw new Error(`Could not parse block:\n${block}`)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error(`Invalid date: ${date}`)
+    activities.push({ id: crypto.randomUUID(), date, text: textRaw.replace(/\\"/g, '"'), repeat })
+  }
+  return activities
+}
+
+// Export
+document.getElementById('btn-export')!.addEventListener('click', async () => {
+  const yaml = toYaml(state.activities)
+  if (!yaml) return
+  await navigator.clipboard.writeText(yaml)
+  const btn = document.getElementById('btn-export')!
+  const orig = btn.textContent
+  btn.textContent = 'Copied!'
+  setTimeout(() => { btn.textContent = orig }, 1500)
+})
+
+// Import modal
+const modal       = document.getElementById('import-modal')!
+const importText  = document.getElementById('import-text') as HTMLTextAreaElement
+const importError = document.getElementById('import-error')!
+
+document.getElementById('btn-import')!.addEventListener('click', () => {
+  importText.value = ''
+  importError.classList.add('hidden')
+  modal.classList.remove('hidden')
+  importText.focus()
+})
+
+document.getElementById('import-close')!.addEventListener('click', () => modal.classList.add('hidden'))
+modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden') })
+
+document.getElementById('import-confirm')!.addEventListener('click', () => {
+  importError.classList.add('hidden')
+  try {
+    const activities = fromYaml(importText.value.trim())
+    if (activities.length === 0) throw new Error('No activities found.')
+    state.activities = activities
+    saveActivities()
+    renderActivityList()
+    renderCalendar()
+    modal.classList.add('hidden')
+  } catch (e: any) {
+    importError.textContent = e.message
+    importError.classList.remove('hidden')
+  }
 })
 
 // ─────────────────────────────────────────────────────────────
