@@ -304,13 +304,16 @@ function buildMonthCalendar(year: number, month: number): string {
     let cellBg = isWknd ? 'background:var(--color-day-weekend)' : 'background:var(--color-surface)'
     if (isTdy) cellBg = 'background:var(--color-day-today)'
 
-    html += `<div class="${cellHeight} border-r border-b p-1.5 flex flex-col ${isLastCol ? 'border-r-0' : ''} ${isLastRow ? 'border-b-0' : ''}" style="${cellBg};border-color:var(--color-border)">`
+    html += `<div class="${cellHeight} group border-r border-b p-1.5 flex flex-col ${isLastCol ? 'border-r-0' : ''} ${isLastRow ? 'border-b-0' : ''}" style="${cellBg};border-color:var(--color-border)">`
 
     // Date number
     const dateNumStyle = isTdy
       ? `width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;background:var(--color-primary);`
       : `font-size:12px;font-weight:${isWknd?'500':'600'};color:${isWknd?'var(--color-muted)':'var(--color-text)'};padding:1px 2px;`
+    html += `<div class="flex items-center justify-between">`
     html += `<span style="${dateNumStyle}">${day}</span>`
+    html += `<button data-add-date="${dateStr}" class="no-print day-add-btn opacity-0 group-hover:opacity-100 w-5 h-5 rounded flex items-center justify-center text-xs font-bold transition-opacity hover:opacity-100" style="color:var(--color-primary);background:var(--color-day-today)">+</button>`
+    html += `</div>`
 
     // Activities
     if (acts.length > 0) {
@@ -663,10 +666,19 @@ document.getElementById('edit-delete')!.addEventListener('click', () => {
 
 editTextEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('edit-save')!.click() })
 
-// Delegate clicks on calendar activity pills
+// Delegate clicks on calendar activity pills and day + buttons
 document.getElementById('calendar-preview')!.addEventListener('click', (e) => {
   const pill = (e.target as HTMLElement).closest<HTMLElement>('[data-edit-id]')
-  if (pill) openEditModal(pill.dataset.editId!)
+  if (pill) { openEditModal(pill.dataset.editId!); return }
+
+  const addBtn = (e.target as HTMLElement).closest<HTMLElement>('[data-add-date]')
+  if (addBtn) {
+    const dateStr = addBtn.dataset.addDate!
+    const sel = document.getElementById('input-date') as HTMLSelectElement
+    sel.value = dateStr
+    const textEl = document.getElementById('input-text') as HTMLInputElement
+    textEl.focus()
+  }
 })
 
 // ─────────────────────────────────────────────────────────────
